@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta charset="utf-8">
+<title>Yu-Gi-Oh Duel Board</title>
+
+<style>
+body {
+  background: radial-gradient(#222, #000);
+  color: white;
+  font-family: Arial;
+  display: flex;
+  justify-content: center;
+}
+
+.board {
+  width: 900px;
+  margin-top: 40px;
+}
+
+.player {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 10px;
+  margin: 20px 0;
+}
+
+.zone {
+  width: 150px;
+  height: 210px;
+  border: 2px solid #555;
+  background: #111;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.zone img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transform-origin: center;
+}
+
+.defense {
+  transform: rotate(90deg);
+}
+
+</style>
+</head>
+
+<body>
+<div class="board">
+  <div id="p2" class="player"></div>
+  <hr>
+  <div id="p1" class="player"></div>
+</div>
+
+<script>
+const cardImages = {
+  "BLUE_EYES": "asset/pictures/blue-eye-white-dragon.jpg",
+    "DARK_MAGICIAN": "asset/pictures/dark-magician.jpg",
+};
+
+const p1 = document.getElementById("p1");
+const p2 = document.getElementById("p2");
+
+function draw(playerDiv, zones) {
+  playerDiv.innerHTML = "";
+  zones.forEach(z => {
+    const div = document.createElement("div");
+    div.className = "zone";
+
+    if (z.cardId) {
+      const img = document.createElement("img");
+      img.src = cardImages[z.cardId];
+
+      if (z.position === 1)
+        img.classList.add("defense");
+
+      div.appendChild(img);
+    }
+
+    playerDiv.appendChild(div);
+  });
+}
+
+const ws = new WebSocket("ws://localhost:5047/ws");
+
+ws.onmessage = e => {
+  const state = JSON.parse(e.data);
+  draw(p1, state.player1.monsterZones);
+  draw(p2, state.player2.monsterZones);
+};
+ws.onopen = () => console.log("WS CONNECTED");
+ws.onerror = e => console.error("WS ERROR", e);
+
+</script>
+</body>
+</html>
